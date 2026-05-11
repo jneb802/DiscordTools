@@ -1,0 +1,35 @@
+# Build outputs
+bin/
+obj/
+
+# Log files
+logoutput.log
+
+# IDE files
+.vs/
+.vscode/
+.idea/
+.cursor/
+*.user
+*.suo
+
+# Rider
+/shelf/
+/workspace.xml
+/modules.xml
+/contentModel.xml
+*.iml
+/projectSettingsUpdater.xml
+/queries/
+/dataSources/
+/dataSources.local.xml
+/httpRequests/
+
+# macOS
+.DS_Store
+
+# Temporary files
+*.tmp
+*.temp
+
+CLAUDE.md
