@@ -17,12 +17,12 @@ using HarmonyLib;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace ValheimClientLogs
+namespace DiscordTools
 {
     [BepInPlugin(ModGUID, ModName, ModVersion)]
-    public class ValheimClientLogsPlugin : BaseUnityPlugin
+    public class DiscordToolsPlugin : BaseUnityPlugin
     {
-        private const string ModName = "ValheimClientLogs";
+        private const string ModName = "DiscordTools";
         private const string ModVersion = "1.0.0";
         private const string Author = "warpalicious";
         private const string ModGUID = Author + "." + ModName;
@@ -33,7 +33,7 @@ namespace ValheimClientLogs
         private DateTime _lastReloadTime;
         private const long ReloadDelayTicks = 10000000;
 
-        public static ValheimClientLogsPlugin? Instance { get; private set; }
+        public static DiscordToolsPlugin? Instance { get; private set; }
         public static readonly ManualLogSource Log = BepInEx.Logging.Logger.CreateLogSource(ModName);
 
         internal static ConfigEntry<string> CommandName = null!;
@@ -164,7 +164,7 @@ namespace ValheimClientLogs
             ZRoutedRpc.instance.Register<ZPackage>(RpcNames.LogMeta, ServerLogReceiver.OnMetadata);
             ZRoutedRpc.instance.Register<ZPackage>(RpcNames.LogChunk, ServerLogReceiver.OnChunk);
             ZRoutedRpc.instance.Register<ZPackage>(RpcNames.LogResult, ClientLogUploader.OnResult);
-            ValheimClientLogsPlugin.Log.LogInfo("Registered client log RPC handlers.");
+            DiscordToolsPlugin.Log.LogInfo("Registered client log RPC handlers.");
         }
 
         private static void OnRequestLog(long sender, ZPackage pkg)
@@ -194,7 +194,7 @@ namespace ValheimClientLogs
 
             _registered = true;
             _ = new Terminal.ConsoleCommand(
-                ValheimClientLogsPlugin.CommandName.Value,
+                DiscordToolsPlugin.CommandName.Value,
                 "[playerNameOrSteamID] requests a connected client's full BepInEx log",
                 Execute,
                 onlyServer: true,
@@ -212,7 +212,7 @@ namespace ValheimClientLogs
 
             if (args.Length < 2 || string.IsNullOrWhiteSpace(args.ArgsAll))
             {
-                return "Usage: " + ValheimClientLogsPlugin.CommandName.Value + " {playerNameOrSteamID}";
+                return "Usage: " + DiscordToolsPlugin.CommandName.Value + " {playerNameOrSteamID}";
             }
 
             ClientLogRpc.Register();
@@ -233,7 +233,7 @@ namespace ValheimClientLogs
             var pkg = new ZPackage();
             pkg.Write(requestId);
             pkg.Write("manual");
-            pkg.Write(ValheimClientLogsPlugin.ManualRequestTimeoutSeconds.Value);
+            pkg.Write(DiscordToolsPlugin.ManualRequestTimeoutSeconds.Value);
             ZRoutedRpc.instance.InvokeRoutedRPC(peer.m_uid, RpcNames.RequestLog, pkg);
 
             args.Context?.AddString("Requested client log from " + PlayerResolver.DescribePeer(peer) + ".");
@@ -353,7 +353,7 @@ namespace ValheimClientLogs
 
         public static void StartUpload(string reason, string requestId, int timeoutSeconds, Action? continueAfter)
         {
-            var plugin = ValheimClientLogsPlugin.Instance;
+            var plugin = DiscordToolsPlugin.Instance;
             if (plugin == null)
             {
                 continueAfter?.Invoke();
@@ -415,23 +415,23 @@ namespace ValheimClientLogs
 
             if (error != null || prepared == null)
             {
-                ValheimClientLogsPlugin.Log.LogWarning("Could not prepare client log: " + (error?.Message ?? "unknown error"));
+                DiscordToolsPlugin.Log.LogWarning("Could not prepare client log: " + (error?.Message ?? "unknown error"));
                 ActiveReasons.Remove(reason);
                 continueAfter?.Invoke();
                 yield break;
             }
 
-            if (prepared.OriginalBytes > ValheimClientLogsPlugin.MaxOriginalBytes.Value)
+            if (prepared.OriginalBytes > DiscordToolsPlugin.MaxOriginalBytes.Value)
             {
-                ValheimClientLogsPlugin.Log.LogWarning("Client log is larger than MaxOriginalBytes. Upload skipped.");
+                DiscordToolsPlugin.Log.LogWarning("Client log is larger than MaxOriginalBytes. Upload skipped.");
                 ActiveReasons.Remove(reason);
                 continueAfter?.Invoke();
                 yield break;
             }
 
-            if (prepared.CompressedBytes > ValheimClientLogsPlugin.MaxCompressedBytes.Value)
+            if (prepared.CompressedBytes > DiscordToolsPlugin.MaxCompressedBytes.Value)
             {
-                ValheimClientLogsPlugin.Log.LogWarning("Compressed client log is larger than MaxCompressedBytes. Upload skipped.");
+                DiscordToolsPlugin.Log.LogWarning("Compressed client log is larger than MaxCompressedBytes. Upload skipped.");
                 ActiveReasons.Remove(reason);
                 continueAfter?.Invoke();
                 yield break;
@@ -466,12 +466,12 @@ namespace ValheimClientLogs
 
             if (Results.TryGetValue(prepared.RequestId, out var result))
             {
-                ValheimClientLogsPlugin.Log.LogInfo("Client log upload result: " + result.Message);
+                DiscordToolsPlugin.Log.LogInfo("Client log upload result: " + result.Message);
                 Results.Remove(prepared.RequestId);
             }
             else
             {
-                ValheimClientLogsPlugin.Log.LogWarning("Client log upload timed out waiting for server acknowledgement.");
+                DiscordToolsPlugin.Log.LogWarning("Client log upload timed out waiting for server acknowledgement.");
             }
 
             ActiveReasons.Remove(reason);
@@ -514,7 +514,7 @@ namespace ValheimClientLogs
                 compressed = memory.ToArray();
             }
 
-            var chunkSize = Mathf.Clamp(ValheimClientLogsPlugin.ChunkSizeBytes.Value, 4096, 262144);
+            var chunkSize = Mathf.Clamp(DiscordToolsPlugin.ChunkSizeBytes.Value, 4096, 262144);
             var fileInfo = new FileInfo(logPath);
             return new PreparedLog
             {
@@ -620,13 +620,13 @@ namespace ValheimClientLogs
                 ReceivedAtUtc = DateTime.UtcNow
             };
 
-            if (transfer.OriginalBytes > ValheimClientLogsPlugin.MaxOriginalBytes.Value)
+            if (transfer.OriginalBytes > DiscordToolsPlugin.MaxOriginalBytes.Value)
             {
                 SendResult(sender, transfer.RequestId, false, "Original log exceeds server limit.");
                 return;
             }
 
-            if (transfer.CompressedBytes > ValheimClientLogsPlugin.MaxCompressedBytes.Value)
+            if (transfer.CompressedBytes > DiscordToolsPlugin.MaxCompressedBytes.Value)
             {
                 SendResult(sender, transfer.RequestId, false, "Compressed log exceeds server limit.");
                 return;
@@ -641,7 +641,7 @@ namespace ValheimClientLogs
             transfer.TempPath = LogArchive.GetIncomingPath(transfer.RequestId);
             transfer.ReceivedChunks = new bool[transfer.ChunkCount];
             Transfers[transfer.RequestId] = transfer;
-            ValheimClientLogsPlugin.Log.LogInfo("Receiving client log from " + PlayerResolver.DescribePeer(peer) + " reason=" + transfer.Reason + " request=" + transfer.RequestId);
+            DiscordToolsPlugin.Log.LogInfo("Receiving client log from " + PlayerResolver.DescribePeer(peer) + " reason=" + transfer.Reason + " request=" + transfer.RequestId);
         }
 
         public static void OnChunk(long sender, ZPackage pkg)
@@ -703,15 +703,15 @@ namespace ValheimClientLogs
                 var archived = LogArchive.Archive(transfer);
                 SendResult(transfer.Sender, transfer.RequestId, true, "Saved client log to " + archived.RelativeLogPath);
 
-                var plugin = ValheimClientLogsPlugin.Instance;
-                if (plugin != null && ValheimClientLogsPlugin.PostToBotApi.Value)
+                var plugin = DiscordToolsPlugin.Instance;
+                if (plugin != null && DiscordToolsPlugin.PostToBotApi.Value)
                 {
                     plugin.StartCoroutine(BotApiClient.PostLogRoutine(archived));
                 }
             }
             catch (Exception ex)
             {
-                ValheimClientLogsPlugin.Log.LogError("Failed to finish client log transfer: " + ex);
+                DiscordToolsPlugin.Log.LogError("Failed to finish client log transfer: " + ex);
                 SendResult(transfer.Sender, transfer.RequestId, false, "Server failed to archive log: " + ex.Message);
             }
             finally
@@ -856,7 +856,7 @@ namespace ValheimClientLogs
 
         public static void CleanupOldLogs()
         {
-            var days = ValheimClientLogsPlugin.RetentionDays.Value;
+            var days = DiscordToolsPlugin.RetentionDays.Value;
             if (days <= 0 || !Directory.Exists(PlayersDir))
             {
                 return;
@@ -985,7 +985,7 @@ namespace ValheimClientLogs
                 }
                 catch (Exception ex)
                 {
-                    ValheimClientLogsPlugin.Log.LogWarning("Could not read metadata " + file + ": " + ex.Message);
+                    DiscordToolsPlugin.Log.LogWarning("Could not read metadata " + file + ": " + ex.Message);
                 }
             }
 
@@ -994,7 +994,7 @@ namespace ValheimClientLogs
 
         private static string ResolveRoot()
         {
-            var configured = ValheimClientLogsPlugin.OutputDirectory.Value;
+            var configured = DiscordToolsPlugin.OutputDirectory.Value;
             if (string.IsNullOrWhiteSpace(configured))
             {
                 configured = "client-logs";
@@ -1196,8 +1196,8 @@ namespace ValheimClientLogs
     {
         public static IEnumerator PostLogRoutine(ArchivedLog log)
         {
-            var botApiUrl = ValheimClientLogsPlugin.GetBotApiUrl();
-            var botApiKey = ValheimClientLogsPlugin.GetBotApiKey();
+            var botApiUrl = DiscordToolsPlugin.GetBotApiUrl();
+            var botApiKey = DiscordToolsPlugin.GetBotApiKey();
 
             if (string.IsNullOrWhiteSpace(botApiUrl))
             {
@@ -1208,7 +1208,7 @@ namespace ValheimClientLogs
             {
                 var message = "Bot API key is not configured. Saved locally at " + log.RelativeLogPath;
                 LogArchive.MarkBotUploadFailed(log, message);
-                ValheimClientLogsPlugin.Log.LogWarning(message);
+                DiscordToolsPlugin.Log.LogWarning(message);
                 yield break;
             }
 
@@ -1220,7 +1220,7 @@ namespace ValheimClientLogs
             catch (Exception ex)
             {
                 LogArchive.MarkBotUploadFailed(log, ex.Message);
-                ValheimClientLogsPlugin.Log.LogWarning("Bot API upload failed for " + log.RelativeLogPath + ": " + ex.Message);
+                DiscordToolsPlugin.Log.LogWarning("Bot API upload failed for " + log.RelativeLogPath + ": " + ex.Message);
                 yield break;
             }
 
@@ -1233,7 +1233,7 @@ namespace ValheimClientLogs
 
             using var request = UnityWebRequest.Post(botApiUrl, form);
             request.SetRequestHeader("X-API-Key", botApiKey);
-            request.SetRequestHeader("User-Agent", "ValheimClientLogs/1.0");
+            request.SetRequestHeader("User-Agent", "DiscordTools/1.0");
 
             yield return request.SendWebRequest();
 
@@ -1241,11 +1241,11 @@ namespace ValheimClientLogs
             {
                 var message = string.IsNullOrWhiteSpace(request.error) ? "HTTP " + request.responseCode : request.error + " (HTTP " + request.responseCode + ")";
                 LogArchive.MarkBotUploadFailed(log, message);
-                ValheimClientLogsPlugin.Log.LogWarning("Bot API upload failed for " + log.RelativeLogPath + ": " + message);
+                DiscordToolsPlugin.Log.LogWarning("Bot API upload failed for " + log.RelativeLogPath + ": " + message);
             }
             else
             {
-                ValheimClientLogsPlugin.Log.LogInfo("Uploaded client log to bot API: " + log.RelativeLogPath);
+                DiscordToolsPlugin.Log.LogInfo("Uploaded client log to bot API: " + log.RelativeLogPath);
             }
         }
 
@@ -1297,7 +1297,7 @@ namespace ValheimClientLogs
                 return true;
             }
 
-            ClientLogUploader.StartUpload("logout", Guid.NewGuid().ToString("N"), ValheimClientLogsPlugin.LogoutUploadTimeoutSeconds.Value, () =>
+            ClientLogUploader.StartUpload("logout", Guid.NewGuid().ToString("N"), DiscordToolsPlugin.LogoutUploadTimeoutSeconds.Value, () =>
             {
                 _continuing = true;
                 try
@@ -1326,7 +1326,7 @@ namespace ValheimClientLogs
                 return true;
             }
 
-            ClientLogUploader.StartUpload("quit", Guid.NewGuid().ToString("N"), ValheimClientLogsPlugin.QuitUploadTimeoutSeconds.Value, () =>
+            ClientLogUploader.StartUpload("quit", Guid.NewGuid().ToString("N"), DiscordToolsPlugin.QuitUploadTimeoutSeconds.Value, () =>
             {
                 _continuing = true;
                 try

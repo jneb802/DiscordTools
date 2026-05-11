@@ -1,4 +1,4 @@
-# ValheimClientLogs
+# DiscordTools
 
 A BepInEx client/server mod for collecting full client `LogOutput.log` files on a dedicated Valheim server.
 
@@ -37,17 +37,17 @@ client-logs/
 ## Build
 
 ```bash
-dotnet build ValheimClientLogs.csproj
+dotnet build DiscordTools.csproj
 ```
 
-The built DLL is written to `bin/Debug/ValheimClientLogs.dll`.
+The built DLL is written to `bin/Debug/DiscordTools.dll`.
 
 ## Configuration
 
-The plugin GUID is `warpalicious.ValheimClientLogs`. Configure the generated file:
+The plugin GUID is `warpalicious.DiscordTools`. Configure the generated file:
 
 ```text
-BepInEx/config/warpalicious.ValheimClientLogs.cfg
+BepInEx/config/warpalicious.DiscordTools.cfg
 ```
 
 Clients do not need the bot URL or API key. Keep bot credentials server-only.

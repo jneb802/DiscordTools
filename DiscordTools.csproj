@@ -4,8 +4,8 @@
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
-    <RootNamespace>ValheimClientLogs</RootNamespace>
-    <AssemblyName>ValheimClientLogs</AssemblyName>
+    <RootNamespace>DiscordTools</RootNamespace>
+    <AssemblyName>DiscordTools</AssemblyName>
     <LangVersion>10</LangVersion>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

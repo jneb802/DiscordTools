@@ -4,11 +4,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ValheimClientLogs")]
+[assembly: AssemblyTitle("DiscordTools")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("ValheimClientLogs")]
+[assembly: AssemblyProduct("DiscordTools")]
 [assembly: AssemblyCopyright("Copyright © 2026 warpalicious")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
