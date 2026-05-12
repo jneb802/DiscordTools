@@ -15,8 +15,8 @@ namespace DiscordTools
         private const string ModVersion = "1.0.0";
         private const string Author = "warpalicious";
         private const string ModGUID = Author + "." + ModName;
-        private const string BotApiUrlEnv = "VALHEIM_CLIENT_LOGS_BOT_API_URL";
-        private const string BotApiKeyEnv = "VALHEIM_CLIENT_LOGS_BOT_API_KEY";
+        private const string BotApiUrlEnv = "DISCORDTOOLS_BOT_API_URL";
+        private const string BotApiKeyEnv = "DISCORDTOOLS_BOT_API_KEY";
 
         private readonly Harmony _harmony = new(ModGUID);
         private DateTime _lastReloadTime;
@@ -89,8 +89,8 @@ namespace DiscordTools
             MaxOriginalBytes = Config.Bind("Limits", "MaxOriginalBytes", 104857600L, "Largest uncompressed client log accepted, in bytes.");
             MaxCompressedBytes = Config.Bind("Limits", "MaxCompressedBytes", 52428800L, "Largest compressed client log accepted, in bytes.");
             PostToBotApi = Config.Bind("BotApi", "PostToBotApi", true, "Upload received logs to a compatible Discord bot API.");
-            BotApiUrl = Config.Bind("BotApi", "ApiUrl", "", "Compatible bot client-log upload endpoint. Prefer the VALHEIM_CLIENT_LOGS_BOT_API_URL environment variable on dedicated servers.");
-            BotApiKey = Config.Bind("BotApi", "ApiKey", "", "API key sent to the bot in the X-API-Key header. Prefer the VALHEIM_CLIENT_LOGS_BOT_API_KEY environment variable on dedicated servers.");
+            BotApiUrl = Config.Bind("BotApi", "ApiUrl", "", "Compatible bot client-log upload endpoint. Prefer the DISCORDTOOLS_BOT_API_URL environment variable on dedicated servers.");
+            BotApiKey = Config.Bind("BotApi", "ApiKey", "", "API key sent to the bot in the X-API-Key header. Prefer the DISCORDTOOLS_BOT_API_KEY environment variable on dedicated servers.");
         }
 
         private void SetupWatcher()

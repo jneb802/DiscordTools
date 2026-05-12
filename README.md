@@ -55,8 +55,8 @@ Clients do not need the bot URL or API key. Keep bot credentials server-only.
 Preferred dedicated-server setup:
 
 ```bash
-export VALHEIM_CLIENT_LOGS_BOT_API_URL="https://your-bot-host.example.com/api/client-log"
-export VALHEIM_CLIENT_LOGS_BOT_API_KEY="shared-secret"
+export DISCORDTOOLS_BOT_API_URL="https://your-bot-host.example.com/api/client-log"
+export DISCORDTOOLS_BOT_API_KEY="shared-secret"
 ```
 
 The BepInEx config can also be used for private dedicated-server installs, but do not ship a config containing `ApiKey` to clients:
