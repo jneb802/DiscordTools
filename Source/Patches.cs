@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace DiscordTools
 {
-    [HarmonyPatch(typeof(ZNet), "Awake")]
+    [HarmonyPatch(typeof(ZNet), nameof(ZNet.Awake))]
     internal static class ZNetAwakePatch
     {
         private static void Postfix()
@@ -42,7 +42,7 @@ namespace DiscordTools
         }
     }
 
-    [HarmonyPatch(typeof(Menu), "QuitGame")]
+    [HarmonyPatch(typeof(Menu), nameof(Menu.QuitGame))]
     internal static class MenuQuitPatch
     {
         private static bool _continuing;
