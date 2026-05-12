@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 using UnityEngine.Networking;
 
@@ -31,7 +32,7 @@ namespace DiscordTools
             byte[] fileBytes;
             try
             {
-                fileBytes = File.ReadAllBytes(log.LogPath);
+                fileBytes = ReadDecompressedLog(log.LogPath);
             }
             catch (Exception ex)
             {
@@ -44,7 +45,7 @@ namespace DiscordTools
             var form = new List<IMultipartFormSection>
             {
                 new MultipartFormDataSection("metadata_json", metadata, Encoding.UTF8, "application/json"),
-                new MultipartFormFileSection("file", fileBytes, Path.GetFileName(log.LogPath), "application/gzip")
+                new MultipartFormFileSection("file", fileBytes, GetDiscordFileName(log.LogPath), "text/plain")
             };
 
             using var request = UnityWebRequest.Post(botApiUrl, form);
@@ -78,6 +79,23 @@ namespace DiscordTools
                    "\"sha256\":\"" + EscapeJson(log.Sha256) + "\"," +
                    "\"serverLogPath\":\"" + EscapeJson(log.RelativeLogPath) + "\"" +
                    "}";
+        }
+
+        private static byte[] ReadDecompressedLog(string path)
+        {
+            using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var gzip = new GZipStream(file, CompressionMode.Decompress);
+            using var memory = new MemoryStream();
+            gzip.CopyTo(memory);
+            return memory.ToArray();
+        }
+
+        private static string GetDiscordFileName(string path)
+        {
+            var fileName = Path.GetFileName(path);
+            return fileName.EndsWith(".gz", StringComparison.OrdinalIgnoreCase)
+                ? fileName.Substring(0, fileName.Length - 3)
+                : fileName;
         }
 
         private static string EscapeJson(string value)

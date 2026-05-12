@@ -13,7 +13,7 @@ A BepInEx client/server mod for collecting full client `LogOutput.log` files on 
 - Full log file is gzip-compressed before transfer.
 - Server stores logs by player ID for later lookup.
 - Server writes JSON metadata and lookup indexes.
-- Server uploads received logs to any compatible Discord bot API when configured.
+- Server uploads received logs as `.log` files to any compatible Discord bot API when configured.
 
 ## Server Storage
 
@@ -69,3 +69,5 @@ ApiKey = shared-secret
 ```
 
 Fresh installs default `ApiUrl` and `ApiKey` to empty values.
+
+Archived logs are kept forever by default. To enable local retention cleanup, set `RetentionDays` to a positive number and `DeleteOldLogsOnStartup` to `true`.

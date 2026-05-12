@@ -82,7 +82,7 @@ namespace DiscordTools
             var cutoff = DateTime.UtcNow.AddDays(-days);
             foreach (var file in Directory.GetFiles(PlayersDir, "*", SearchOption.AllDirectories))
             {
-                if ((file.EndsWith(".log.gz", StringComparison.OrdinalIgnoreCase) || file.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) &&
+                if (IsArchivedLogFile(file) &&
                     File.GetLastWriteTimeUtc(file) < cutoff)
                 {
                     TryDelete(file);
@@ -220,6 +220,15 @@ namespace DiscordTools
             return Path.IsPathRooted(configured)
                 ? configured
                 : Path.Combine(Paths.BepInExRootPath, configured);
+        }
+
+        private static bool IsArchivedLogFile(string path)
+        {
+            var normalized = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+            var logsSegment = Path.DirectorySeparatorChar + "logs" + Path.DirectorySeparatorChar;
+            return normalized.IndexOf(logsSegment, StringComparison.OrdinalIgnoreCase) >= 0 &&
+                   (path.EndsWith(".log.gz", StringComparison.OrdinalIgnoreCase) ||
+                    path.EndsWith(".json", StringComparison.OrdinalIgnoreCase));
         }
 
         private static string BuildLogMetadataJson(ArchivedLog archived, IncomingTransfer transfer)

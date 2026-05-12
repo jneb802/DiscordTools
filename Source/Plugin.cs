@@ -83,8 +83,8 @@ namespace DiscordTools
             ManualRequestTimeoutSeconds = Config.Bind("General", "ManualRequestTimeoutSeconds", 120, "How long the client waits for the server to acknowledge a manual log request.");
             LogoutUploadTimeoutSeconds = Config.Bind("General", "LogoutUploadTimeoutSeconds", 30, "How long logout waits for log upload before continuing.");
             QuitUploadTimeoutSeconds = Config.Bind("General", "QuitUploadTimeoutSeconds", 10, "How long normal quit waits for log upload before continuing.");
-            RetentionDays = Config.Bind("General", "RetentionDays", 30, "Delete archived logs older than this many days. Set 0 to keep logs forever.");
-            DeleteOldLogsOnStartup = Config.Bind("General", "DeleteOldLogsOnStartup", true, "Run retention cleanup when the mod loads.");
+            RetentionDays = Config.Bind("General", "RetentionDays", 0, "Delete archived logs older than this many days. Set 0 to keep logs forever.");
+            DeleteOldLogsOnStartup = Config.Bind("General", "DeleteOldLogsOnStartup", false, "Run retention cleanup when the mod loads.");
 
             MaxOriginalBytes = Config.Bind("Limits", "MaxOriginalBytes", 104857600L, "Largest uncompressed client log accepted, in bytes.");
             MaxCompressedBytes = Config.Bind("Limits", "MaxCompressedBytes", 52428800L, "Largest compressed client log accepted, in bytes.");
