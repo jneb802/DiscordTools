@@ -4,7 +4,7 @@ A BepInEx client/server mod for collecting full client `LogOutput.log` files on 
 
 ## Features
 
-- Server command for RCON:
+- Server command:
   ```text
   client-logs {playerNameOrSteamID}
   ```
