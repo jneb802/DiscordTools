@@ -15,6 +15,15 @@ A BepInEx client/server mod for collecting full client `LogOutput.log` files on 
 - Server writes JSON metadata and lookup indexes.
 - Server uploads received logs as `.log` files to any compatible Discord bot API when configured.
 
+## How to use
+
+- Requires a Discord bot with a compatible upload API if you want logs posted to Discord.
+- Install DiscordTools on the dedicated server and on every client that should be able to send logs.
+- Set `DISCORDTOOLS_BOT_API_URL` and `DISCORDTOOLS_BOT_API_KEY` on the dedicated server.
+- Start the server and have the player join.
+- Run `client-logs {playerNameOrSteamID}` on the server to request that player's log.
+- Logs are saved on the server disk and, when configured, sent to Discord as a `.log` attachment.
+
 ## Server Storage
 
 Logs are stored under `BepInEx/client-logs` by default:
