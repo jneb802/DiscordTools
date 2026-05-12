@@ -70,4 +70,4 @@ ApiKey = shared-secret
 
 Fresh installs default `ApiUrl` and `ApiKey` to empty values.
 
-Archived logs are kept forever by default. To enable local retention cleanup, set `RetentionDays` to a positive number and `DeleteOldLogsOnStartup` to `true`.
+Archived logs are retained for 30 days by default. To keep logs forever, set `RetentionDays` to `0`.
