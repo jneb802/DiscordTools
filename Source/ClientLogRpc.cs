@@ -1,3 +1,5 @@
+using System;
+
 namespace DiscordTools
 {
     internal static class ClientLogRpc

@@ -1,3 +1,7 @@
+using System;
+using HarmonyLib;
+using UnityEngine;
+
 namespace DiscordTools
 {
     [HarmonyPatch(typeof(ZNet), "Awake")]

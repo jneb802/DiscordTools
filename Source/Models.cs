@@ -1,3 +1,5 @@
+using System;
+
 namespace DiscordTools
 {
     internal sealed class IncomingTransfer

@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 namespace DiscordTools
 {
     internal static class ClientLogCommand
@@ -14,7 +18,7 @@ namespace DiscordTools
             _registered = true;
             _ = new Terminal.ConsoleCommand(
                 DiscordToolsPlugin.CommandName.Value,
-                "[playerNameOrSteamID] requests a connected client's full BepInEx log",
+                "[playerNameOrSteamID] - request a full BepInEx log from that connected player",
                 Execute,
                 onlyServer: true,
                 remoteCommand: true,

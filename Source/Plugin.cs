@@ -1,3 +1,11 @@
+using System;
+using System.IO;
+using System.Reflection;
+using BepInEx;
+using BepInEx.Configuration;
+using BepInEx.Logging;
+using HarmonyLib;
+
 namespace DiscordTools
 {
     [BepInPlugin(ModGUID, ModName, ModVersion)]
