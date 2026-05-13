@@ -25,6 +25,7 @@ namespace DiscordTools
     {
         public string PlayerId = "";
         public string PlayerName = "";
+        public string PlayerFolder = "";
         public string Reason = "";
         public string RequestId = "";
         public DateTime ReceivedAtUtc;

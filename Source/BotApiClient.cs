@@ -72,6 +72,7 @@ namespace DiscordTools
                    "\"requestId\":\"" + EscapeJson(log.RequestId) + "\"," +
                    "\"playerId\":\"" + EscapeJson(log.PlayerId) + "\"," +
                    "\"playerName\":\"" + EscapeJson(log.PlayerName) + "\"," +
+                   "\"playerFolder\":\"" + EscapeJson(log.PlayerFolder) + "\"," +
                    "\"reason\":\"" + EscapeJson(log.Reason) + "\"," +
                    "\"receivedAtUtc\":\"" + EscapeJson(log.ReceivedAtUtc.ToString("O", CultureInfo.InvariantCulture)) + "\"," +
                    "\"originalBytes\":" + log.OriginalBytes.ToString(CultureInfo.InvariantCulture) + "," +
