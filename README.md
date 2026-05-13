@@ -11,7 +11,7 @@ A BepInEx client/server mod for collecting full client `LogOutput.log` files on 
 - Client uploads on logout.
 - Client attempts upload on normal quit.
 - Full log file is gzip-compressed before transfer.
-- Server stores logs by player name and Steam ID for later lookup.
+- Server stores logs by player name and stable player ID for later lookup.
 - Server writes JSON metadata and lookup indexes.
 - Server uploads received logs as `.log` files to any compatible Discord bot API when configured.
 
@@ -30,7 +30,7 @@ Logs are stored under `BepInEx/client-logs` by default:
 
 ```text
 client-logs/
-  players/{playerName}_{steamId}/
+  players/{playerName}_{playerId}/
     player.json
     latest.json
     logs/{yyyy-MM}/

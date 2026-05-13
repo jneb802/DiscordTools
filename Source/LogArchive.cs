@@ -151,7 +151,9 @@ namespace DiscordTools
 
             foreach (var entry in entries)
             {
-                if (!byId.ContainsKey(entry.PlayerId))
+                var legacyPlayerFolder = LegacyPlayerFolder(entry.PlayerId);
+                if (!byId.TryGetValue(entry.PlayerId, out var existingFolder) ||
+                    entry.PlayerFolder.Equals(legacyPlayerFolder, StringComparison.OrdinalIgnoreCase))
                 {
                     byId[entry.PlayerId] = entry.PlayerFolder;
                 }
@@ -408,7 +410,7 @@ namespace DiscordTools
                 return path.Substring(0, logsIndex);
             }
 
-            return "players/" + SafePathSegment(playerId);
+            return LegacyPlayerFolder(playerId);
         }
 
         private static string EscapeJson(string value)
@@ -442,6 +444,11 @@ namespace DiscordTools
         private static string BuildPlayerFolderName(string playerName, string playerId)
         {
             return SafePathSegment(playerName) + "_" + SafePathSegment(playerId);
+        }
+
+        private static string LegacyPlayerFolder(string playerId)
+        {
+            return "players/" + SafePathSegment(playerId);
         }
 
         private static string ToRelative(string path)
