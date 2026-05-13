@@ -144,18 +144,19 @@ namespace DiscordTools
         {
             EnsureDirectories();
             var entries = ReadAllMetadata().OrderByDescending(entry => entry.ReceivedAtUtc).ToList();
-            var byId = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
+            var byId = new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             var byName = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
+            var byIdFolders = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
+            var byNameFolders = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var entry in entries)
             {
-                if (!byId.TryGetValue(entry.PlayerId, out var foldersForId))
+                if (!byId.ContainsKey(entry.PlayerId))
                 {
-                    foldersForId = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-                    byId[entry.PlayerId] = foldersForId;
+                    byId[entry.PlayerId] = entry.PlayerFolder;
                 }
 
-                foldersForId.Add(entry.PlayerFolder);
+                AddToStringSetMap(byIdFolders, entry.PlayerId, entry.PlayerFolder);
 
                 var key = entry.PlayerName.Trim().ToLowerInvariant();
                 if (key.Length == 0)
@@ -163,16 +164,11 @@ namespace DiscordTools
                     continue;
                 }
 
-                if (!byName.TryGetValue(key, out var ids))
-                {
-                    ids = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-                    byName[key] = ids;
-                }
-
-                ids.Add(entry.PlayerFolder);
+                AddToStringSetMap(byName, key, entry.PlayerId);
+                AddToStringSetMap(byNameFolders, key, entry.PlayerFolder);
             }
 
-            File.WriteAllText(Path.Combine(IndexDir, "players.json"), BuildPlayersIndexJson(byId, byName), Encoding.UTF8);
+            File.WriteAllText(Path.Combine(IndexDir, "players.json"), BuildPlayersIndexJson(byId, byName, byIdFolders, byNameFolders), Encoding.UTF8);
             File.WriteAllText(Path.Combine(IndexDir, "recent.json"), BuildRecentJson(entries.Take(100).ToList()), Encoding.UTF8);
         }
 
@@ -285,13 +281,21 @@ namespace DiscordTools
             return builder.ToString();
         }
 
-        private static string BuildPlayersIndexJson(SortedDictionary<string, SortedSet<string>> byId, SortedDictionary<string, SortedSet<string>> byName)
+        private static string BuildPlayersIndexJson(
+            SortedDictionary<string, string> byId,
+            SortedDictionary<string, SortedSet<string>> byName,
+            SortedDictionary<string, SortedSet<string>> byIdFolders,
+            SortedDictionary<string, SortedSet<string>> byNameFolders)
         {
             var builder = new StringBuilder();
             builder.Append("{\n  \"byId\": {\n");
-            AppendStringSetMap(builder, byId, 4);
+            AppendStringMap(builder, byId, 4);
             builder.Append("\n  },\n  \"byName\": {\n");
             AppendStringSetMap(builder, byName, 4);
+            builder.Append("  },\n  \"byIdFolders\": {\n");
+            AppendStringSetMap(builder, byIdFolders, 4);
+            builder.Append("  },\n  \"byNameFolders\": {\n");
+            AppendStringSetMap(builder, byNameFolders, 4);
             builder.Append("  }\n}\n");
             return builder.ToString();
         }
@@ -332,6 +336,32 @@ namespace DiscordTools
             }
             builder.Append("}\n");
             return builder.ToString();
+        }
+
+        private static void AddToStringSetMap(SortedDictionary<string, SortedSet<string>> map, string key, string value)
+        {
+            if (!map.TryGetValue(key, out var values))
+            {
+                values = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+                map[key] = values;
+            }
+
+            values.Add(value);
+        }
+
+        private static void AppendStringMap(StringBuilder builder, SortedDictionary<string, string> map, int indent)
+        {
+            var spaces = new string(' ', indent);
+            var index = 0;
+            foreach (var pair in map)
+            {
+                builder.Append(spaces).Append("\"").Append(EscapeJson(pair.Key)).Append("\": \"").Append(EscapeJson(pair.Value)).Append("\"");
+                if (++index < map.Count)
+                {
+                    builder.Append(",");
+                }
+                builder.Append("\n");
+            }
         }
 
         private static void AppendStringSetMap(StringBuilder builder, SortedDictionary<string, SortedSet<string>> map, int indent)
