@@ -18,7 +18,9 @@ namespace DiscordTools
             ZRoutedRpc.instance.Register<ZPackage>(RpcNames.LogMeta, ServerLogReceiver.OnMetadata);
             ZRoutedRpc.instance.Register<ZPackage>(RpcNames.LogChunk, ServerLogReceiver.OnChunk);
             ZRoutedRpc.instance.Register<ZPackage>(RpcNames.LogResult, ClientLogUploader.OnResult);
-            DiscordToolsPlugin.Log.LogInfo("Registered client log RPC handlers.");
+            ZRoutedRpc.instance.Register<ZPackage>(RpcNames.LinkRequest, LinkRpc.OnRequest);
+            ZRoutedRpc.instance.Register<ZPackage>(RpcNames.LinkResult, LinkRpc.OnResult);
+            DiscordToolsPlugin.Log.LogInfo("Registered DiscordTools RPC handlers.");
         }
 
         private static void OnRequestLog(long sender, ZPackage pkg)

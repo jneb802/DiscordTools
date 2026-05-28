@@ -83,6 +83,33 @@ namespace DiscordTools
             }
         }
 
+        public static string SafeEndPoint(ZNetPeer peer)
+        {
+            try
+            {
+                return peer.m_socket?.GetEndPointString() ?? "";
+            }
+            catch
+            {
+                return "";
+            }
+        }
+
+        public static string PlatformDisplayName(ZNetPeer peer)
+        {
+            try
+            {
+                return peer.m_serverSyncedPlayerData != null &&
+                       peer.m_serverSyncedPlayerData.TryGetValue("platformDisplayName", out var displayName)
+                    ? displayName
+                    : "";
+            }
+            catch
+            {
+                return "";
+            }
+        }
+
         private static string Normalize(string value)
         {
             return (value ?? "").Trim().ToLowerInvariant();
