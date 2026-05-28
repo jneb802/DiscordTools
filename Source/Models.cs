@@ -25,6 +25,7 @@ namespace DiscordTools
     {
         public string PlayerId = "";
         public string PlayerName = "";
+        public string PlayerFolder = "";
         public string Reason = "";
         public string RequestId = "";
         public DateTime ReceivedAtUtc;
@@ -35,5 +36,17 @@ namespace DiscordTools
         public string MetadataPath = "";
         public string RelativeLogPath = "";
         public string RelativeMetadataPath = "";
+    }
+
+    internal sealed class LinkRequest
+    {
+        public long Sender;
+        public string RequestId = "";
+        public string Code = "";
+        public string PlayerId = "";
+        public string PlayerName = "";
+        public string Endpoint = "";
+        public string PlatformDisplayName = "";
+        public DateTime ReceivedAtUtc;
     }
 }

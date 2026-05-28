@@ -37,11 +37,13 @@ namespace DiscordTools
             var playerId = SafePathSegment(PlayerResolver.StablePlayerId(transfer.Peer));
             var playerName = string.IsNullOrWhiteSpace(transfer.Peer.m_playerName) ? transfer.ClientPlayerName : transfer.Peer.m_playerName;
             playerName = string.IsNullOrWhiteSpace(playerName) ? "unknown" : playerName;
+            var playerFolderName = BuildPlayerFolderName(playerName, playerId);
+            var relativePlayerFolder = "players/" + playerFolderName;
 
             var month = transfer.ReceivedAtUtc.ToString("yyyy-MM", CultureInfo.InvariantCulture);
             var stamp = transfer.ReceivedAtUtc.ToString("yyyy-MM-dd_HH-mm-ss'Z'", CultureInfo.InvariantCulture);
             var fileStem = stamp + "_" + transfer.Reason + "_" + SafePathSegment(playerName) + "_LogOutput";
-            var playerDir = Path.Combine(PlayersDir, playerId);
+            var playerDir = Path.Combine(PlayersDir, playerFolderName);
             var logDir = Path.Combine(playerDir, "logs", month);
             Directory.CreateDirectory(logDir);
 
@@ -53,6 +55,7 @@ namespace DiscordTools
             {
                 PlayerId = playerId,
                 PlayerName = playerName,
+                PlayerFolder = relativePlayerFolder,
                 Reason = transfer.Reason,
                 RequestId = transfer.RequestId,
                 ReceivedAtUtc = transfer.ReceivedAtUtc,
@@ -100,6 +103,7 @@ namespace DiscordTools
             {
                 ["playerId"] = log.PlayerId,
                 ["playerName"] = log.PlayerName,
+                ["playerFolder"] = log.PlayerFolder,
                 ["reason"] = log.Reason,
                 ["receivedAtUtc"] = log.ReceivedAtUtc.ToString("O", CultureInfo.InvariantCulture),
                 ["path"] = log.RelativeLogPath,
@@ -130,6 +134,8 @@ namespace DiscordTools
                 ["latestMetadata"] = latest.RelativeMetadataPath,
                 ["receivedAtUtc"] = latest.ReceivedAtUtc.ToString("O", CultureInfo.InvariantCulture),
                 ["reason"] = latest.Reason,
+                ["playerId"] = latest.PlayerId,
+                ["playerFolder"] = latest.PlayerFolder,
                 ["playerName"] = latest.PlayerName
             }), Encoding.UTF8);
         }
@@ -140,26 +146,31 @@ namespace DiscordTools
             var entries = ReadAllMetadata().OrderByDescending(entry => entry.ReceivedAtUtc).ToList();
             var byId = new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             var byName = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
+            var byIdFolders = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
+            var byNameFolders = new SortedDictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var entry in entries)
             {
-                byId[entry.PlayerId] = "players/" + entry.PlayerId;
+                var legacyPlayerFolder = LegacyPlayerFolder(entry.PlayerId);
+                if (!byId.TryGetValue(entry.PlayerId, out var existingFolder) ||
+                    entry.PlayerFolder.Equals(legacyPlayerFolder, StringComparison.OrdinalIgnoreCase))
+                {
+                    byId[entry.PlayerId] = entry.PlayerFolder;
+                }
+
+                AddToStringSetMap(byIdFolders, entry.PlayerId, entry.PlayerFolder);
+
                 var key = entry.PlayerName.Trim().ToLowerInvariant();
                 if (key.Length == 0)
                 {
                     continue;
                 }
 
-                if (!byName.TryGetValue(key, out var ids))
-                {
-                    ids = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-                    byName[key] = ids;
-                }
-
-                ids.Add(entry.PlayerId);
+                AddToStringSetMap(byName, key, entry.PlayerId);
+                AddToStringSetMap(byNameFolders, key, entry.PlayerFolder);
             }
 
-            File.WriteAllText(Path.Combine(IndexDir, "players.json"), BuildPlayersIndexJson(byId, byName), Encoding.UTF8);
+            File.WriteAllText(Path.Combine(IndexDir, "players.json"), BuildPlayersIndexJson(byId, byName, byIdFolders, byNameFolders), Encoding.UTF8);
             File.WriteAllText(Path.Combine(IndexDir, "recent.json"), BuildRecentJson(entries.Take(100).ToList()), Encoding.UTF8);
         }
 
@@ -189,6 +200,11 @@ namespace DiscordTools
                         Reason = JsonValue(json, "reason"),
                         Path = JsonValue(json, "logPath")
                     };
+                    entry.PlayerFolder = JsonValue(json, "playerFolder");
+                    if (string.IsNullOrWhiteSpace(entry.PlayerFolder))
+                    {
+                        entry.PlayerFolder = PlayerFolderFromRelativeLogPath(entry.Path, entry.PlayerId);
+                    }
 
                     if (!DateTime.TryParse(JsonValue(json, "receivedAtUtc"), null, DateTimeStyles.RoundtripKind, out entry.ReceivedAtUtc))
                     {
@@ -239,6 +255,7 @@ namespace DiscordTools
                 ["reason"] = archived.Reason,
                 ["playerId"] = archived.PlayerId,
                 ["playerName"] = archived.PlayerName,
+                ["playerFolder"] = archived.PlayerFolder,
                 ["clientPlayerName"] = transfer.ClientPlayerName,
                 ["receivedAtUtc"] = archived.ReceivedAtUtc.ToString("O", CultureInfo.InvariantCulture),
                 ["logModifiedUtc"] = transfer.LogModifiedUtc,
@@ -257,6 +274,7 @@ namespace DiscordTools
             builder.Append("{\n");
             AppendJsonProperty(builder, "playerId", latest.PlayerId, comma: true);
             AppendJsonProperty(builder, "lastKnownName", latest.PlayerName, comma: true);
+            AppendJsonProperty(builder, "playerFolder", latest.PlayerFolder, comma: true);
             builder.Append("  \"knownNames\": [");
             builder.Append(string.Join(", ", knownNames.Select(name => "\"" + EscapeJson(name) + "\"").ToArray()));
             builder.Append("],\n");
@@ -265,24 +283,21 @@ namespace DiscordTools
             return builder.ToString();
         }
 
-        private static string BuildPlayersIndexJson(SortedDictionary<string, string> byId, SortedDictionary<string, SortedSet<string>> byName)
+        private static string BuildPlayersIndexJson(
+            SortedDictionary<string, string> byId,
+            SortedDictionary<string, SortedSet<string>> byName,
+            SortedDictionary<string, SortedSet<string>> byIdFolders,
+            SortedDictionary<string, SortedSet<string>> byNameFolders)
         {
             var builder = new StringBuilder();
             builder.Append("{\n  \"byId\": {\n");
             AppendStringMap(builder, byId, 4);
             builder.Append("\n  },\n  \"byName\": {\n");
-            var index = 0;
-            foreach (var pair in byName)
-            {
-                builder.Append("    \"").Append(EscapeJson(pair.Key)).Append("\": [");
-                builder.Append(string.Join(", ", pair.Value.Select(id => "\"" + EscapeJson(id) + "\"").ToArray()));
-                builder.Append("]");
-                if (++index < byName.Count)
-                {
-                    builder.Append(",");
-                }
-                builder.Append("\n");
-            }
+            AppendStringSetMap(builder, byName, 4);
+            builder.Append("  },\n  \"byIdFolders\": {\n");
+            AppendStringSetMap(builder, byIdFolders, 4);
+            builder.Append("  },\n  \"byNameFolders\": {\n");
+            AppendStringSetMap(builder, byNameFolders, 4);
             builder.Append("  }\n}\n");
             return builder.ToString();
         }
@@ -297,6 +312,7 @@ namespace DiscordTools
                 builder.Append("  {\n");
                 AppendJsonProperty(builder, "playerId", entry.PlayerId, comma: true, indent: 4);
                 AppendJsonProperty(builder, "playerName", entry.PlayerName, comma: true, indent: 4);
+                AppendJsonProperty(builder, "playerFolder", entry.PlayerFolder, comma: true, indent: 4);
                 AppendJsonProperty(builder, "reason", entry.Reason, comma: true, indent: 4);
                 AppendJsonProperty(builder, "receivedAtUtc", entry.ReceivedAtUtc.ToString("O", CultureInfo.InvariantCulture), comma: true, indent: 4);
                 AppendJsonProperty(builder, "path", entry.Path, comma: false, indent: 4);
@@ -324,6 +340,17 @@ namespace DiscordTools
             return builder.ToString();
         }
 
+        private static void AddToStringSetMap(SortedDictionary<string, SortedSet<string>> map, string key, string value)
+        {
+            if (!map.TryGetValue(key, out var values))
+            {
+                values = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+                map[key] = values;
+            }
+
+            values.Add(value);
+        }
+
         private static void AppendStringMap(StringBuilder builder, SortedDictionary<string, string> map, int indent)
         {
             var spaces = new string(' ', indent);
@@ -331,6 +358,23 @@ namespace DiscordTools
             foreach (var pair in map)
             {
                 builder.Append(spaces).Append("\"").Append(EscapeJson(pair.Key)).Append("\": \"").Append(EscapeJson(pair.Value)).Append("\"");
+                if (++index < map.Count)
+                {
+                    builder.Append(",");
+                }
+                builder.Append("\n");
+            }
+        }
+
+        private static void AppendStringSetMap(StringBuilder builder, SortedDictionary<string, SortedSet<string>> map, int indent)
+        {
+            var spaces = new string(' ', indent);
+            var index = 0;
+            foreach (var pair in map)
+            {
+                builder.Append(spaces).Append("\"").Append(EscapeJson(pair.Key)).Append("\": [");
+                builder.Append(string.Join(", ", pair.Value.Select(value => "\"" + EscapeJson(value) + "\"").ToArray()));
+                builder.Append("]");
                 if (++index < map.Count)
                 {
                     builder.Append(",");
@@ -355,6 +399,18 @@ namespace DiscordTools
         {
             var match = Regex.Match(json, "\"" + Regex.Escape(key) + "\"\\s*:\\s*\"((?:\\\\.|[^\"])*)\"");
             return match.Success ? UnescapeJson(match.Groups[1].Value) : "";
+        }
+
+        private static string PlayerFolderFromRelativeLogPath(string relativeLogPath, string playerId)
+        {
+            var path = (relativeLogPath ?? "").Replace('\\', '/');
+            var logsIndex = path.IndexOf("/logs/", StringComparison.OrdinalIgnoreCase);
+            if (path.StartsWith("players/", StringComparison.OrdinalIgnoreCase) && logsIndex > "players/".Length)
+            {
+                return path.Substring(0, logsIndex);
+            }
+
+            return LegacyPlayerFolder(playerId);
         }
 
         private static string EscapeJson(string value)
@@ -385,6 +441,16 @@ namespace DiscordTools
             return safe.Length == 0 ? "unknown" : safe;
         }
 
+        private static string BuildPlayerFolderName(string playerName, string playerId)
+        {
+            return SafePathSegment(playerName) + "_" + SafePathSegment(playerId);
+        }
+
+        private static string LegacyPlayerFolder(string playerId)
+        {
+            return "players/" + SafePathSegment(playerId);
+        }
+
         private static string ToRelative(string path)
         {
             var root = Root.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
@@ -412,6 +478,7 @@ namespace DiscordTools
         {
             public string PlayerId = "";
             public string PlayerName = "";
+            public string PlayerFolder = "";
             public string Reason = "";
             public string Path = "";
             public DateTime ReceivedAtUtc;

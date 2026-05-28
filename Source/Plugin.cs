@@ -12,10 +12,11 @@ namespace DiscordTools
     public class DiscordToolsPlugin : BaseUnityPlugin
     {
         private const string ModName = "DiscordTools";
-        private const string ModVersion = "1.0.0";
+        private const string ModVersion = "1.2.0";
         private const string Author = "warpalicious";
         private const string ModGUID = Author + "." + ModName;
         private const string BotApiUrlEnv = "DISCORDTOOLS_BOT_API_URL";
+        private const string LinkApiUrlEnv = "DISCORDTOOLS_LINK_API_URL";
         private const string BotApiKeyEnv = "DISCORDTOOLS_BOT_API_KEY";
 
         private readonly Harmony _harmony = new(ModGUID);
@@ -37,7 +38,9 @@ namespace DiscordTools
         internal static ConfigEntry<long> MaxCompressedBytes = null!;
         internal static ConfigEntry<bool> PostToBotApi = null!;
         internal static ConfigEntry<string> BotApiUrl = null!;
+        internal static ConfigEntry<string> LinkApiUrl = null!;
         internal static ConfigEntry<string> BotApiKey = null!;
+        internal static ConfigEntry<string> LinkCommand = null!;
 
         internal static string GetBotApiUrl()
         {
@@ -49,6 +52,12 @@ namespace DiscordTools
         {
             var envValue = Environment.GetEnvironmentVariable(BotApiKeyEnv);
             return string.IsNullOrWhiteSpace(envValue) ? BotApiKey.Value : envValue.Trim();
+        }
+
+        internal static string GetLinkApiUrl()
+        {
+            var envValue = Environment.GetEnvironmentVariable(LinkApiUrlEnv);
+            return string.IsNullOrWhiteSpace(envValue) ? LinkApiUrl.Value : envValue.Trim();
         }
 
         public void Awake()
@@ -90,7 +99,9 @@ namespace DiscordTools
             MaxCompressedBytes = Config.Bind("Limits", "MaxCompressedBytes", 52428800L, "Largest compressed client log accepted, in bytes.");
             PostToBotApi = Config.Bind("BotApi", "PostToBotApi", true, "Upload received logs to a compatible Discord bot API.");
             BotApiUrl = Config.Bind("BotApi", "ApiUrl", "", "Compatible bot client-log upload endpoint. Prefer the DISCORDTOOLS_BOT_API_URL environment variable on dedicated servers.");
+            LinkApiUrl = Config.Bind("BotApi", "LinkApiUrl", "", "Compatible bot Valheim link endpoint. Prefer the DISCORDTOOLS_LINK_API_URL environment variable on dedicated servers.");
             BotApiKey = Config.Bind("BotApi", "ApiKey", "", "API key sent to the bot in the X-API-Key header. Prefer the DISCORDTOOLS_BOT_API_KEY environment variable on dedicated servers.");
+            LinkCommand = Config.Bind("Linking", "LinkCommand", "!link", "In-game chat command consumed by DiscordTools before it is sent as chat.");
         }
 
         private void SetupWatcher()

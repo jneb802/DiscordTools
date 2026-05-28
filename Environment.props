@@ -102,6 +102,10 @@
             <HintPath>$(PUBLICIZED_PATH)/assembly_guiutils_publicized.dll</HintPath>
             <Private>false</Private>
         </Reference>
+        <Reference Include="gui_framework">
+            <HintPath>$(PUBLICIZED_PATH)/gui_framework_publicized.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
         <Reference Include="assembly_utils">
             <HintPath>$(PUBLICIZED_PATH)/assembly_utils_publicized.dll</HintPath>
             <Private>false</Private>
