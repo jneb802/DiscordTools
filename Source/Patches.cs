@@ -18,8 +18,7 @@ namespace DiscordTools
     {
         private static bool Prefix(Chat __instance)
         {
-            return !LinkCommandHandler.TryHandle(__instance) &&
-                   !CreativeCommandForwarder.TryHandle(__instance);
+            return !LinkCommandHandler.TryHandle(__instance);
         }
     }
 

@@ -10,6 +10,5 @@ namespace DiscordTools
         public const string LinkResult = "DiscordTools_LinkResult";
         public const string CreativeInventoryRequest = "DiscordTools_CreativeInventoryRequest";
         public const string CreativeInventoryResponse = "DiscordTools_CreativeInventoryResponse";
-        public const string CreativeCommand = "DiscordTools_CreativeCommand";
     }
 }
