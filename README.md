@@ -14,6 +14,7 @@ A BepInEx client/server mod for collecting full client `LogOutput.log` files on 
   ```text
   !link CODE
   ```
+- Creative inventory bridge RPC for server-side mods that need a trusted client inventory count.
 - Full log file is gzip-compressed before transfer.
 - Server stores logs by player name and stable player ID for later lookup.
 - Server writes JSON metadata and lookup indexes.
@@ -88,6 +89,62 @@ ApiKey = shared-secret
 Fresh installs default `ApiUrl` and `ApiKey` to empty values.
 
 Archived logs are retained for 30 days by default. To keep logs forever, set `RetentionDays` to `0`.
+
+## Creative Inventory RPC
+
+DiscordTools registers a client-side request RPC:
+
+```text
+DiscordTools_CreativeInventoryRequest
+```
+
+Request package:
+
+```text
+int    protocolVersion = 1
+string requestId
+ZDOID  characterId
+bool   includeItems
+```
+
+The client answers the sender with:
+
+```text
+DiscordTools_CreativeInventoryResponse
+```
+
+Response package:
+
+```text
+int    protocolVersion = 1
+string requestId
+ZDOID  characterId
+bool   available
+string error
+long   playerId
+string playerName
+int    playerInventoryCount
+bool   extraSlotsLoaded
+bool   extraSlotsAvailable
+int    extraSlotsCount
+int    totalUniqueCount
+int    itemEntryCount
+```
+
+Each item entry then writes:
+
+```text
+string source
+string prefabName
+string sharedName
+int    stack
+int    quality
+bool   equipped
+int    gridX
+int    gridY
+```
+
+`totalUniqueCount` is the value to enforce for empty-inventory checks. Item entries can include both `player` and `extraSlots` views of the same item for debugging. Shudnal ExtraSlots is read through its public `ExtraSlots.API.GetAllExtraSlotsItems()` method when the mod is loaded.
 
 ## Link API
 

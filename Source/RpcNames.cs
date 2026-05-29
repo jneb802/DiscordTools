@@ -8,5 +8,7 @@ namespace DiscordTools
         public const string LogResult = "DiscordTools_LogResult";
         public const string LinkRequest = "DiscordTools_LinkRequest";
         public const string LinkResult = "DiscordTools_LinkResult";
+        public const string CreativeInventoryRequest = "DiscordTools_CreativeInventoryRequest";
+        public const string CreativeInventoryResponse = "DiscordTools_CreativeInventoryResponse";
     }
 }
