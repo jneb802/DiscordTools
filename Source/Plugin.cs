@@ -21,6 +21,7 @@ namespace DiscordTools
 
         private readonly Harmony _harmony = new(ModGUID);
         private DateTime _lastReloadTime;
+        private FileSystemWatcher? _configWatcher;
         private const long ReloadDelayTicks = 10000000;
 
         public static DiscordToolsPlugin? Instance { get; private set; }
@@ -76,8 +77,34 @@ namespace DiscordTools
 
         private void OnDestroy()
         {
-            Config.Save();
-            _harmony.UnpatchSelf();
+            try
+            {
+                _configWatcher?.Dispose();
+                _configWatcher = null;
+            }
+            catch (Exception ex)
+            {
+                Log.LogWarning("Failed to dispose configuration watcher: " + ex.Message);
+            }
+
+            try
+            {
+                Config.Save();
+            }
+            catch (Exception ex)
+            {
+                Log.LogWarning("Failed to save configuration during shutdown: " + ex.Message);
+            }
+
+            try
+            {
+                _harmony.UnpatchSelf();
+            }
+            catch (Exception ex)
+            {
+                Log.LogWarning("Failed to unpatch DiscordTools during shutdown: " + ex.Message);
+            }
+
             if (Instance == this)
             {
                 Instance = null;
@@ -106,13 +133,21 @@ namespace DiscordTools
 
         private void SetupWatcher()
         {
-            _lastReloadTime = DateTime.Now;
-            var watcher = new FileSystemWatcher(Paths.ConfigPath, ModGUID + ".cfg");
-            watcher.Changed += ReadConfigValues;
-            watcher.Created += ReadConfigValues;
-            watcher.Renamed += ReadConfigValues;
-            watcher.IncludeSubdirectories = true;
-            watcher.EnableRaisingEvents = true;
+            try
+            {
+                _lastReloadTime = DateTime.Now;
+                _configWatcher?.Dispose();
+                _configWatcher = new FileSystemWatcher(Paths.ConfigPath, ModGUID + ".cfg");
+                _configWatcher.Changed += ReadConfigValues;
+                _configWatcher.Created += ReadConfigValues;
+                _configWatcher.Renamed += ReadConfigValues;
+                _configWatcher.IncludeSubdirectories = true;
+                _configWatcher.EnableRaisingEvents = true;
+            }
+            catch (Exception ex)
+            {
+                Log.LogWarning("Failed to start configuration watcher: " + ex.Message);
+            }
         }
 
         private void ReadConfigValues(object sender, FileSystemEventArgs e)

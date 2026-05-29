@@ -25,15 +25,22 @@ namespace DiscordTools
 
         private static void OnRequestLog(long sender, ZPackage pkg)
         {
-            if (ZNet.instance == null || ZNet.instance.IsServer())
+            try
             {
-                return;
-            }
+                if (ZNet.instance == null || ZNet.instance.IsServer())
+                {
+                    return;
+                }
 
-            var requestId = pkg.ReadString();
-            var reason = pkg.ReadString();
-            var timeoutSeconds = pkg.ReadInt();
-            ClientLogUploader.StartUpload(reason, requestId, timeoutSeconds, continueAfter: null);
+                var requestId = pkg.ReadString();
+                var reason = pkg.ReadString();
+                var timeoutSeconds = pkg.ReadInt();
+                ClientLogUploader.StartUpload(reason, requestId, timeoutSeconds, continueAfter: null);
+            }
+            catch (Exception ex)
+            {
+                DiscordToolsPlugin.Log.LogWarning("Ignored malformed client log request RPC from " + sender + ": " + ex.Message);
+            }
         }
     }
 }

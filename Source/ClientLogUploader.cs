@@ -43,12 +43,19 @@ namespace DiscordTools
 
         public static void OnResult(long sender, ZPackage pkg)
         {
-            var requestId = pkg.ReadString();
-            Results[requestId] = new UploadResult
+            try
             {
-                Success = pkg.ReadBool(),
-                Message = pkg.ReadString()
-            };
+                var requestId = pkg.ReadString();
+                Results[requestId] = new UploadResult
+                {
+                    Success = pkg.ReadBool(),
+                    Message = pkg.ReadString()
+                };
+            }
+            catch (Exception ex)
+            {
+                DiscordToolsPlugin.Log.LogWarning("Ignored malformed client log result RPC from " + sender + ": " + ex.Message);
+            }
         }
 
         public static bool ShouldUpload()
