@@ -15,6 +15,7 @@ A BepInEx client/server mod for collecting full client `LogOutput.log` files on 
   !link CODE
   ```
 - Creative inventory bridge RPC for server-side mods that need a trusted client inventory count.
+- Creative biome override RPC for server-side creative zones that need client-side biome terrain paint.
 - Full log file is gzip-compressed before transfer.
 - Server stores logs by player name and stable player ID for later lookup.
 - Server writes JSON metadata and lookup indexes.
@@ -145,6 +146,30 @@ int    gridY
 ```
 
 `totalUniqueCount` is the value to enforce for empty-inventory checks. Item entries can include both `player` and `extraSlots` views of the same item for debugging. Shudnal ExtraSlots is read through its public `ExtraSlots.API.GetAllExtraSlotsItems()` method when the mod is loaded.
+
+## Creative Biome Override RPC
+
+DiscordTools registers a client-side biome override RPC:
+
+```text
+DiscordTools_CreativeBiomeOverride
+```
+
+Request package:
+
+```text
+int     protocolVersion = 1
+int     zoneCount
+string  zoneId
+bool    enabled
+Vector3 center
+float   radius
+int     biome
+```
+
+The client applies enabled zones by overriding `WorldGenerator.GetBiome`,
+`Heightmap.GetBiome`, and biome color lookups inside the radius. Disabled zones
+are removed, and affected heightmaps plus clutter are refreshed.
 
 ## Link API
 
