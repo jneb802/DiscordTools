@@ -12,7 +12,7 @@ namespace DiscordTools
     public class DiscordToolsPlugin : BaseUnityPlugin
     {
         private const string ModName = "DiscordTools";
-        private const string ModVersion = "1.3.0";
+        private const string ModVersion = "1.3.1";
         private const string Author = "warpalicious";
         private const string ModGUID = Author + "." + ModName;
         private const string BotApiUrlEnv = "DISCORDTOOLS_BOT_API_URL";
