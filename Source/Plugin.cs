@@ -65,6 +65,7 @@ namespace DiscordTools
             Instance = this;
             BindConfig();
             ClientLogCommand.Register();
+            SiegePortalTestCommand.Register();
             _harmony.PatchAll(Assembly.GetExecutingAssembly());
             SetupWatcher();
             LogArchive.EnsureDirectories();
