@@ -13,15 +13,6 @@ namespace DiscordTools
         }
     }
 
-    [HarmonyPatch(typeof(Chat), nameof(Chat.SendInput))]
-    internal static class ChatSendInputPatch
-    {
-        private static bool Prefix(Chat __instance)
-        {
-            return !LinkCommandHandler.TryHandle(__instance);
-        }
-    }
-
     [HarmonyPatch(typeof(Game), nameof(Game.Logout))]
     internal static class GameLogoutPatch
     {

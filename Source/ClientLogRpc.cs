@@ -18,10 +18,6 @@ namespace DiscordTools
             ZRoutedRpc.instance.Register<ZPackage>(RpcNames.LogMeta, ServerLogReceiver.OnMetadata);
             ZRoutedRpc.instance.Register<ZPackage>(RpcNames.LogChunk, ServerLogReceiver.OnChunk);
             ZRoutedRpc.instance.Register<ZPackage>(RpcNames.LogResult, ClientLogUploader.OnResult);
-            ZRoutedRpc.instance.Register<ZPackage>(RpcNames.LinkRequest, LinkRpc.OnRequest);
-            ZRoutedRpc.instance.Register<ZPackage>(RpcNames.LinkResult, LinkRpc.OnResult);
-            ZRoutedRpc.instance.Register<ZPackage>(RpcNames.CreativeInventoryRequest, CreativeInventoryRpc.OnRequest);
-            ZRoutedRpc.instance.Register<ZPackage>(RpcNames.CreativeBiomeOverride, CreativeBiomeOverride.OnOverride);
             DiscordToolsPlugin.Log.LogInfo("Registered DiscordTools RPC handlers.");
         }
 
