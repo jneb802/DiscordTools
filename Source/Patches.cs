@@ -16,29 +16,15 @@ namespace DiscordTools
     [HarmonyPatch(typeof(Game), nameof(Game.Logout))]
     internal static class GameLogoutPatch
     {
-        private static bool _continuing;
-
-        private static bool Prefix(Game __instance, bool save, bool changeToStartScene)
+        private static bool Prefix()
         {
-            if (_continuing || !ClientLogUploader.ShouldUpload())
+            if (!ClientLogUploader.ShouldUpload())
             {
                 return true;
             }
 
-            ClientLogUploader.StartUpload("logout", Guid.NewGuid().ToString("N"), DiscordToolsPlugin.LogoutUploadTimeoutSeconds.Value, () =>
-            {
-                _continuing = true;
-                try
-                {
-                    __instance.Logout(save, changeToStartScene);
-                }
-                finally
-                {
-                    _continuing = false;
-                }
-            });
-
-            return false;
+            ClientLogUploader.StartUpload("logout", Guid.NewGuid().ToString("N"), DiscordToolsPlugin.LogoutUploadTimeoutSeconds.Value, continueAfter: null);
+            return true;
         }
     }
 
