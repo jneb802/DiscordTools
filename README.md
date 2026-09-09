@@ -47,11 +47,27 @@ client-logs/
 
 ## Build
 
+Use Valheim 1.0 game assemblies and regenerate their publicized copies before
+building. The command registration names a Valheim 1.0 constructor option so
+older game references fail at compile time. Previously released DLLs built
+against the old constructor fail during startup on Valheim 1.0.
+
 ```bash
 dotnet build DiscordTools.csproj
 ```
 
 The built DLL is written to `bin/Debug/DiscordTools.dll`.
+
+To use assemblies copied from a test client, override both paths:
+
+```bash
+dotnet build DiscordTools.csproj -c Release \
+  -p:VALHEIM_MANAGED=/path/to/Managed \
+  -p:PUBLICIZED_PATH=/path/to/Managed/publicized_assemblies
+```
+
+See [Valheim 1.0 validation](docs/valheim-1.0-validation.md) for results and
+remaining test coverage.
 
 ## Configuration
 

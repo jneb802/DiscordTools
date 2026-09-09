@@ -21,6 +21,7 @@ namespace DiscordTools
                 "[playerNameOrSteamID] - request a full BepInEx log from that connected player",
                 Execute,
                 onlyServer: true,
+                hideBehindDevCommands: false,
                 remoteCommand: true,
                 optionsFetcher: GetPlayerOptions,
                 alwaysRefreshTabOptions: true);
